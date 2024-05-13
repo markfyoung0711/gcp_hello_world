@@ -1,29 +1,29 @@
-# Define the build stage
-FROM node:16-alpine as build
+# Use a base image with Python 3.11 and Node.js (latest version)
+FROM nikolaik/python-nodejs:python3.12-nodejs22-slim
 
-# Set the working directory in the Docker image
+# Set working directory
 WORKDIR /app
 
-# Copy package.json and package-lock.json to Docker image
+# Copy package.json and package-lock.json to the working directory
 COPY package.json package-lock.json ./
 
-# Install dependencies in the image
+# Install Node.js dependencies
 RUN npm install
 
-# Copy the rest of your React app source code to the Docker image
+# Copy Python requirements file to the working directory
+COPY requirements.txt .
+
+# Install Python dependencies
+RUN pip install -r requirements.txt
+
+# Install React dependencies (if needed)
+# RUN npm install react react-dom
+
+# Copy the rest of the application files to the working directory
 COPY . .
 
-# Build your React application
-RUN npm run build
+# Expose the port your app runs on
+EXPOSE 3000
 
-# Define the serve stage
-FROM nginx:alpine
-
-# Copy static assets from build stage to Nginx serve directory
-COPY --from=build /app/build /usr/share/nginx/html
-
-# Expose port 80 to the outside world
-EXPOSE 80
-
-# Start Nginx and keep it running in the foreground
-CMD ["nginx", "-g", "daemon off;"]
+# Command to run the application
+CMD ["npm", "start"]
